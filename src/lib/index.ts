@@ -19,7 +19,7 @@ export const networkToCluster = (network?: NetworkEnum) => {
 };
 
 export const openOnXray = (mintAddressValue: PublicKeyInitData) => {
-  window.open(`https://xray.helius.xyz/token/${mintAddressValue.toString()}`);
+  window.open(`https://xray.helius.xyz/token/${mintAddressValue.toString()}?network=${process.env.NEXT_PUBLIC_NETWORK}}`);
 };
 
 export const viewAccountOnExplorer = (publicKey: PublicKeyInitData, network?: NetworkEnum) => {

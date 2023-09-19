@@ -1,41 +1,51 @@
+import { Button } from "@/components/Button";
+import { Card } from "@/components/Card";
 import { Container } from "@/components/Container";
-import { Input } from "@/components/Input";
 import { Header } from "@/components/MediaObject/Header";
-import { Spin } from "@/components/Spin";
-import { useProjects } from "@/hooks/useProjects";
-import Link from "next/link";
-import { useState } from "react";
+import { SignInWithWalletButton } from "@/components/SignInWithWalletButton";
+import { openOnXray, shortenAddress } from "@/lib";
+import { useProject } from "@underdog-protocol/js";
+import { signOut, useSession } from "next-auth/react";
+import { useEffect } from "react";
 
 export const IndexView: React.FC = () => {
-  const { data, isLoading } = useProjects({ query: { page: 1, limit: 20 } });
+  const session = useSession();
+
+  const { project, refetch } = useProject({ params: { projectId: 1 }, query: { page: 1, limit: 10, sortBy: "id", order: "desc" } });
+
+  useEffect(() => {
+    if (session) {
+      refetch();
+    }
+  }, [session]);
+
+  if (!project) return null;
 
   return (
-    <Container size="2xl" className="pt-8 space-y-8">
-      <Header
-        title={process.env.NEXT_PUBLIC_APP_NAME || "My Gallery"}
-        size="5xl"
-      />
+    <Container size="md" className="py-8 space-y-8">
+        <Card className="space-y-4 p-4">
+          <img src={project.image} />          
 
-      {!data || isLoading ? (
-        <div className="flex justify-center py-4">
-          <Spin />
-        </div>
-      ) : (
-        <div className="grid grid-cols-3 gap-1">
-          {data?.results.map((project) => (
-            <Link
-              key={project.id}
-              href={`/${project.id}`}
-              className="relative pb-[100%] rounded-md overflow-hidden hover:opacity-50"
-            >
-              <img
-                className="absolute h-full w-full object-cover"
-                src={project.image}
-              />
-            </Link>
+          {session.status === "authenticated" ? (
+            <Button onClick={() => signOut({ redirect: false })} block>
+              Sign Out
+            </Button>
+          ) : (
+            <SignInWithWalletButton />
+          )}
+        </Card>
+
+        <Card className="flex w-full flex-col space-y-4 p-4">
+          <Header title="Activity" />
+          {project.nfts.results.map((nft) => (
+            <div key={nft.id} className="flex justify-between items-center space-x-4">
+              <p className="text-light">
+                {nft.ownerAddress && `${shortenAddress(nft.ownerAddress)} minted ${nft.name}`}
+              </p>
+              <Button className="flex-shrink-0 text-primary" type="link" size="xs" onClick={() => openOnXray(nft.mintAddress)}>View on XRAY</Button>
+            </div>
           ))}
-        </div>
-      )}
+        </Card>
     </Container>
   );
 };
