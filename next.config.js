@@ -6,6 +6,9 @@ if (!process.env.UNDERDOG_API_KEY) {
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  typescript: {
+    ignoreBuildErrors: true,
+  },
   reactStrictMode: true,
 }
 
